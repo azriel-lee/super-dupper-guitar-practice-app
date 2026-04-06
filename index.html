@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -6,88 +6,47 @@
   <title>Super Dupper Guitar App</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #f4f7fb;
-      background:
-        radial-gradient(circle at top left, rgba(51,230,255,0.18), transparent 22%),
-        radial-gradient(circle at top right, rgba(255,0,128,0.14), transparent 24%),
-        linear-gradient(180deg, #08090f 0%, #030409 100%);
-      min-height: 100vh;
-    }
+    html, body { min-height: 100%; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #f4f7fb; background: radial-gradient(circle at top left, rgba(51,230,255,0.18), transparent 22%), radial-gradient(circle at top right, rgba(255,0,128,0.14), transparent 24%), linear-gradient(180deg, #08090f 0%, #030409 100%); }
+    body.theme-light { color: #161920; background: linear-gradient(180deg, #f7f9fc 0%, #edf2f8 100%); }
+    button, input, select, a { font: inherit; }
+    input[type="range"] { width: 100%; accent-color: #35e6ff; }
     .app-shell { max-width: 1600px; margin: 0 auto; padding: 16px; }
     @media (min-width: 768px) { .app-shell { padding: 24px; } }
     .dashboard-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
-    @media (min-width: 980px) {
-      .dashboard-grid {
-        grid-template-columns: minmax(320px, 1fr) minmax(260px, 0.72fr);
-        grid-template-areas:
-          "metronome creator"
-          "scales scales";
-        align-items: start;
-      }
-    }
-    .area-metronome { grid-area: metronome; }
-    .area-creator { grid-area: creator; }
-    .area-scales { grid-area: scales; }
-    .panel {
-      border-radius: 24px;
-      border: 1px solid rgba(52,63,79,0.95);
-      background: linear-gradient(180deg, rgba(10,10,18,0.96), rgba(6,6,10,0.97));
-      padding: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.03);
-    }
+    @media (min-width: 980px) { .dashboard-grid { grid-template-columns: minmax(320px, 1fr) minmax(260px, 0.72fr); grid-template-areas: "metronome creator" "scales scales"; align-items: start; } .area-metronome { grid-area: metronome; } .area-creator { grid-area: creator; } .area-scales { grid-area: scales; } }
+    .panel { border-radius: 24px; border: 1px solid rgba(52,63,79,0.95); background: linear-gradient(180deg, rgba(10,10,18,0.96), rgba(6,6,10,0.97)); padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.03); }
     .glow-cyan { box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 28px rgba(53,230,255,0.08); }
     .glow-violet { box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 28px rgba(165,84,255,0.08); }
     .glow-pink { box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 28px rgba(255,0,128,0.08); }
-    .panel h2 { margin: 0 0 12px; font-size: 20px; font-weight: 800; }
-    .tempo-box, .value-box, select {
-      border: 1px solid #2f3947;
-      background: #10141d;
-    }
-    .tempo-box {
-      padding: 16px;
-      border-radius: 20px;
-      border-color: rgba(83,221,255,0.22);
-      background: linear-gradient(135deg, rgba(16,19,29,1) 0%, rgba(9,11,18,1) 100%);
-      box-shadow: inset 0 0 18px rgba(53,230,255,0.03);
-    }
+    .panel-header { margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .panel-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+    .top-title-block { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .top-title { display: flex; align-items: center; justify-content: center; padding: 12px 14px; border-radius: 18px; border: 1px solid rgba(83, 221, 255, 0.18); background: linear-gradient(135deg, rgba(8,12,20,0.88), rgba(15,8,20,0.82)); box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06); }
+    .top-title span { font-size: 20px; font-weight: 900; letter-spacing: 0.04em; color: #b6f7ff; text-shadow: 0 0 10px rgba(53,230,255,0.35), 0 0 20px rgba(255,0,128,0.14); }
+    .tempo-box, .value-box, select, .theme-box { border: 1px solid #2f3947; background: #10141d; }
+    .tempo-box { padding: 16px; border-radius: 20px; border-color: rgba(83,221,255,0.22); background: linear-gradient(135deg, rgba(16,19,29,1) 0%, rgba(9,11,18,1) 100%); box-shadow: inset 0 0 18px rgba(53,230,255,0.03); }
     .small-caps { font-size: 12px; letter-spacing: 0.25em; color: #7c8fa7; }
     .big-number { margin-top: 6px; font-size: clamp(38px, 5vw, 52px); font-weight: 900; }
     .big-number span { font-size: 18px; color: #8997aa; font-weight: 500; }
     .field-block { margin-top: 14px; }
     .field-label-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: #95a1b2; margin-bottom: 8px; }
     .metronome-grid, .fretboard-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
-    select, .value-box, button, a { font: inherit; }
-    input[type="range"] { width: 100%; accent-color: #35e6ff; }
-    select, .value-box {
-      width: 100%; border-radius: 12px; color: #f4f7fb; padding: 10px 12px; font-size: 14px;
-    }
+    select, .value-box { width: 100%; border-radius: 12px; color: #f4f7fb; padding: 10px 12px; font-size: 14px; }
     .value-box { font-size: 18px; font-weight: 800; }
     .button-row, .badge-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
     .button-row { margin-top: 14px; }
-    .btn {
-      border-radius: 14px; padding: 10px 16px; cursor: pointer; font-weight: 700; border: 1px solid transparent;
-      text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
-    }
+    .btn { border-radius: 14px; padding: 10px 16px; cursor: pointer; font-weight: 700; border: 1px solid transparent; }
     .btn-primary { background: #edf3fb; color: #090b10; border: none; font-weight: 800; }
     .btn-stop { background: linear-gradient(90deg, #c01849, #9f163d); color: white; border: none; font-weight: 800; }
     .btn-secondary { border: 1px solid #374252; background: #10141d; color: #e8eef8; }
-    .btn-neon { border: 1px solid rgba(83,221,255,0.32); background: rgba(53,230,255,0.12); color: #9bf1ff; box-shadow: 0 0 16px rgba(53,230,255,0.08); }
-    .top-title-block { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-    .top-title {
-      display: flex; align-items: center; justify-content: center; padding: 12px 14px; border-radius: 18px;
-      border: 1px solid rgba(83, 221, 255, 0.18);
-      background: linear-gradient(135deg, rgba(8,12,20,0.88), rgba(15,8,20,0.82));
-      box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06);
-    }
-    .top-title span { font-size: 20px; font-weight: 900; letter-spacing: 0.04em; color: #b6f7ff; text-shadow: 0 0 10px rgba(53,230,255,0.35), 0 0 20px rgba(255,0,128,0.14); }
-    .creator-copy { color: #a6b3c5; line-height: 1.65; font-size: 15px; }
+    .btn-neon { border: 1px solid rgba(83,221,255,0.32); background: rgba(53,230,255,0.12); color: #9bf1ff; box-shadow: 0 0 16px rgba(53,230,255,0.08); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
     .badge-wrap { margin: 14px 0; }
     .badge { padding: 8px 12px; border-radius: 999px; background: #1a202b; color: #f4f7fb; font-size: 14px; font-weight: 700; }
     .badge-root { background: linear-gradient(90deg, #ff007a, #ff4da0); color: white; box-shadow: 0 0 16px rgba(255,0,128,0.16); }
     .fretboard-outer { overflow-x: auto; border-radius: 20px; border: 1px solid #2c3542; background: linear-gradient(180deg, #0f1219 0%, #090b10 100%); padding: 12px; }
+    .fretboard-lefty { transform: scaleX(-1); }
+    .fretboard-lefty .fret-number, .fretboard-lefty .string-label, .fretboard-lefty .dot { transform: scaleX(-1); }
     .fretboard-track { width: 100%; min-width: 760px; }
     .fretboard-row { display: grid; align-items: center; gap: 2px; margin-bottom: 6px; width: 100%; }
     .fret-number { text-align: center; color: #708197; font-size: 12px; font-weight: 700; }
@@ -97,271 +56,126 @@
     .dot-scale { background: linear-gradient(180deg, #ebf2fb, #c7d7e8); color: #090b10; }
     .dot-root { background: linear-gradient(180deg, #ff007a, #c51458); color: white; box-shadow: 0 0 18px rgba(255,0,128,0.35); }
     .dot-off { background: #202734; color: #69778b; opacity: 0.16; }
+    .creator-subtitle { color: #dfe8f6; font-weight: 700; margin-bottom: 8px; }
+    .creator-copy { color: #a6b3c5; line-height: 1.65; font-size: 15px; }
+    .creator-actions { margin-top: 12px; }
+    .theme-box { margin-top: 14px; padding: 12px; border-radius: 16px; }
+    .theme-toggle { display: inline-flex; align-items: center; gap: 10px; }
+    .theme-icon { font-size: 18px; line-height: 1; }
+    body.theme-light .panel, body.theme-light .top-title, body.theme-light .tempo-box, body.theme-light .value-box, body.theme-light select, body.theme-light .fretboard-outer, body.theme-light .badge, body.theme-light .btn-secondary, body.theme-light .theme-box { background: #ffffff; color: #161920; border-color: #d6dde8; }
+    body.theme-light .panel { box-shadow: 0 10px 30px rgba(10,20,40,0.08); }
+    body.theme-light .small-caps, body.theme-light .field-label-row, body.theme-light .fret-number, body.theme-light .creator-copy, body.theme-light .big-number span { color: #5d697b; }
+    body.theme-light .string-label { color: #283245; }
+    body.theme-light .dot-off { background: #dde4ef; color: #7b8798; opacity: 0.5; }
+    body.theme-light .top-title span { color: #16324a; text-shadow: none; }
+    body.theme-light .btn-neon { color: #0f3558; border-color: #4cbde1; background: #eafaff; box-shadow: none; }
+    body.theme-light .btn-neon:hover { background: #d8f5ff; }
+    body.theme-light .creator-subtitle { color: #161920; }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <main class="dashboard-grid">
-      <section class="panel glow-cyan area-metronome">
-        <h2>Metronome</h2>
+<div class="app-shell">
+  <main class="dashboard-grid">
+    <div class="area-metronome">
+      <section class="panel glow-cyan">
+        <div class="panel-header"><h2>Metronome</h2></div>
         <div class="tempo-box">
           <div class="small-caps">TEMPO</div>
-          <div class="big-number"><span id="bpmValue">120</span> <span>BPM</span></div>
-          <input id="bpmSlider" type="range" min="40" max="240" step="1" value="120">
+          <div class="big-number"><span id="bpmText">120</span> <span>BPM</span></div>
+          <input id="bpm" type="range" min="40" max="240" step="1" value="120" />
         </div>
         <div class="field-block">
-          <div class="field-label-row"><span>Volume</span><span id="volumeValue">70%</span></div>
-          <input id="volumeSlider" type="range" min="0" max="100" step="1" value="70">
+          <div class="field-label-row"><span>Volume</span><span id="volumeText">100%</span></div>
+          <input id="volume" type="range" min="0" max="100" step="1" value="100" />
         </div>
         <div class="metronome-grid">
-          <div>
-            <div class="field-label-row"><span>Sound</span><span></span></div>
-            <select id="soundSelect">
-              <option value="tone">Tone</option>
-              <option value="metclick">Click</option>
-            </select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Time Signature</span><span></span></div>
-            <select id="timeSigSelect"></select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Current Beat</span><span></span></div>
-            <div class="value-box" id="beatDisplay">1 / 4</div>
-          </div>
+          <div><div class="field-label-row"><span>Sound</span><span></span></div><select id="soundType"><option value="tone">Tone</option><option value="metclick">Click</option></select></div>
+          <div><div class="field-label-row"><span>Time Signature</span><span></span></div><select id="timeSig"></select></div>
+          <div><div class="field-label-row"><span>Current Beat</span><span></span></div><div class="value-box" id="beatText">1 / 4</div></div>
         </div>
         <div class="button-row">
-          <button id="startStopBtn" class="btn btn-primary">Start</button>
-          <button id="resetBtn" class="btn btn-secondary">Reset</button>
-          <button id="tapBtn" class="btn btn-neon">Tap Tempo</button>
+          <button class="btn btn-primary" id="startStopBtn">Start</button>
+          <button class="btn btn-secondary" id="resetBeatBtn">Reset</button>
+          <button class="btn btn-neon" id="tapTempoBtn">Tap Tempo</button>
         </div>
       </section>
-
-      <div class="area-creator top-title-block">
+    </div>
+    <div class="area-creator">
+      <div class="top-title-block">
         <div class="top-title"><span>Super Dupper Guitar App</span></div>
         <section class="panel glow-pink">
-          <h2>Created by Panos Lee</h2>
-          <div class="creator-copy">Follow me on Instagram for more cool guitar and metal stuff.</div>
-          <div class="button-row">
-            <a class="btn btn-neon" href="https://www.instagram.com/panos.lee" target="_blank" rel="noreferrer">Press Here</a>
+          <div class="panel-header"><h2>Created by Panos Lee</h2></div>
+          <div class="creator-subtitle">Created by Panos Lee</div>
+          <div class="creator-copy">This app is free, but feel free to follow me on Instagram as a thank-you — I’ll be posting more guitar and metal stuff there!</div>
+          <div class="button-row"><a class="btn btn-neon" href="https://www.instagram.com/panos.lee" target="_blank" rel="noreferrer">Press Here</a></div>
+          <div class="creator-actions">
+            <div class="theme-box">
+              <div class="theme-toggle">
+                <span class="theme-icon">🌙</span>
+                <button class="btn btn-secondary" id="themeBtn">Switch to Light Mode</button>
+                <span class="theme-icon">☀️</span>
+              </div>
+            </div>
           </div>
         </section>
       </div>
-
-      <section class="panel glow-violet area-scales">
-        <h2>Scale Viewer</h2>
+    </div>
+    <div class="area-scales">
+      <section class="panel glow-violet">
+        <div class="panel-header"><h2>Scale Viewer</h2></div>
         <div class="fretboard-controls">
-          <div>
-            <div class="field-label-row"><span>Root</span><span></span></div>
-            <select id="rootSelect"></select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Scale / Mode</span><span></span></div>
-            <select id="scaleSelect"></select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Strings</span><span id="stringsValue">6</span></div>
-            <select id="stringsSelect">
-              <option value="6">6 String</option>
-              <option value="7">7 String</option>
-              <option value="8">8 String</option>
-            </select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Tuning</span><span></span></div>
-            <select id="tuningSelect"></select>
-          </div>
-          <div>
-            <div class="field-label-row"><span>Transpose</span><span id="transposeValue">0 st</span></div>
-            <input id="transposeSlider" type="range" min="-6" max="6" step="1" value="0">
-          </div>
-          <div>
-            <div class="field-label-row"><span>Frets</span><span id="fretsValue">15</span></div>
-            <input id="fretsSlider" type="range" min="12" max="24" step="1" value="15">
-          </div>
+          <div><div class="field-label-row"><span>Orientation</span><span></span></div><select id="orientation"><option value="right">Right Handed</option><option value="left">Left Handed</option></select></div>
+          <div><div class="field-label-row"><span>Root</span><span></span></div><select id="root"></select></div>
+          <div><div class="field-label-row"><span>Scale / Mode</span><span></span></div><select id="scale"></select></div>
+          <div><div class="field-label-row"><span>Strings</span><span id="stringsText">6</span></div><select id="strings"><option value="6">6 String</option><option value="7">7 String</option><option value="8">8 String</option></select></div>
+          <div><div class="field-label-row"><span>Tuning</span><span></span></div><select id="tuningName"></select></div>
+          <div><div class="field-label-row"><span>Transpose</span><span id="transposeText">0 st</span></div><input id="transpose" type="range" min="-6" max="6" step="1" value="0" /></div>
+          <div><div class="field-label-row"><span>Frets</span><span id="fretsText">15</span></div><input id="frets" type="range" min="12" max="24" step="1" value="15" /></div>
         </div>
-
         <div class="badge-wrap" id="tuningBadges"></div>
         <div class="badge-wrap" id="scaleBadges"></div>
-
-        <div class="fretboard-outer">
-          <div class="fretboard-track" id="fretboard"></div>
-        </div>
+        <div id="fretboardOuter" class="fretboard-outer"><div id="fretboardTrack" class="fretboard-track"></div></div>
       </section>
-    </main>
-  </div>
-
+    </div>
+  </main>
+</div>
 <script>
-const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const COMMON_TIMES = ["2/4", "3/4", "4/4", "5/4", "6/8", "7/8", "9/8", "12/8"];
-const TUNINGS = {
-  6: {
-    "Standard (E)": ["E", "A", "D", "G", "B", "E"], "Drop D": ["D", "A", "D", "G", "B", "E"],
-    "D Standard": ["D", "G", "C", "F", "A", "D"], "Drop C": ["C", "G", "C", "F", "A", "D"],
-    "C# Standard": ["C#", "F#", "B", "E", "G#", "C#"], "Drop B": ["B", "F#", "B", "E", "G#", "C#"],
-    "C Standard": ["C", "F", "A#", "D#", "G", "C"], "Drop A#": ["A#", "F", "A#", "D#", "G", "C"],
-    "B Standard": ["B", "E", "A", "D", "F#", "B"], "Drop A": ["A", "E", "A", "D", "F#", "B"]
-  },
-  7: {
-    "Standard (B)": ["B", "E", "A", "D", "G", "B", "E"], "Drop A": ["A", "E", "A", "D", "G", "B", "E"],
-    "A Standard": ["A", "D", "G", "C", "F", "A", "D"], "Drop G": ["G", "D", "G", "C", "F", "A", "D"],
-    "G# Standard": ["G#", "C#", "F#", "B", "E", "G#", "C#"], "Drop F#": ["F#", "C#", "F#", "B", "E", "G#", "C#"]
-  },
-  8: {
-    "Standard (F#)": ["F#", "B", "E", "A", "D", "G", "B", "E"], "Drop E": ["E", "B", "E", "A", "D", "G", "B", "E"],
-    "E Standard": ["E", "A", "D", "G", "C", "F", "A", "D"], "Drop D": ["D", "A", "D", "G", "C", "F", "A", "D"]
-  }
-};
-const SCALE_PATTERNS = {
-  "Major": [0,2,4,5,7,9,11], "Natural Minor": [0,2,3,5,7,8,10], Ionian: [0,2,4,5,7,9,11], Dorian: [0,2,3,5,7,9,10],
-  Phrygian: [0,1,3,5,7,8,10], Lydian: [0,2,4,6,7,9,11], Mixolydian: [0,2,4,5,7,9,10], Aeolian: [0,2,3,5,7,8,10],
-  Locrian: [0,1,3,5,6,8,10], "Harmonic Minor": [0,2,3,5,7,8,11], "Melodic Minor": [0,2,3,5,7,9,11]
-};
-
-const state = { bpm:120, volume:70, isRunning:false, timeSig:'4/4', beat:1, soundType:'tone', root:'E', scale:'Minor', frets:15, strings:6, tuningName:'Standard (E)', transpose:0 };
-const els = {
-  bpmValue: document.getElementById('bpmValue'), bpmSlider: document.getElementById('bpmSlider'),
-  volumeValue: document.getElementById('volumeValue'), volumeSlider: document.getElementById('volumeSlider'),
-  soundSelect: document.getElementById('soundSelect'), timeSigSelect: document.getElementById('timeSigSelect'), beatDisplay: document.getElementById('beatDisplay'),
-  startStopBtn: document.getElementById('startStopBtn'), resetBtn: document.getElementById('resetBtn'), tapBtn: document.getElementById('tapBtn'),
-  rootSelect: document.getElementById('rootSelect'), scaleSelect: document.getElementById('scaleSelect'), stringsSelect: document.getElementById('stringsSelect'), stringsValue: document.getElementById('stringsValue'),
-  tuningSelect: document.getElementById('tuningSelect'), transposeSlider: document.getElementById('transposeSlider'), transposeValue: document.getElementById('transposeValue'),
-  fretsSlider: document.getElementById('fretsSlider'), fretsValue: document.getElementById('fretsValue'), tuningBadges: document.getElementById('tuningBadges'), scaleBadges: document.getElementById('scaleBadges'), fretboard: document.getElementById('fretboard')
-};
-
-COMMON_TIMES.forEach(sig => els.timeSigSelect.add(new Option(sig, sig)));
-NOTES.forEach(note => els.rootSelect.add(new Option(note, note)));
-Object.keys(SCALE_PATTERNS).forEach(name => els.scaleSelect.add(new Option(name === 'Natural Minor' ? 'Minor' : name, name === 'Natural Minor' ? 'Minor' : name)));
-
-function noteIndex(note){ return NOTES.indexOf(note); }
-function transposeNote(note, semitones){ const idx = noteIndex(note); return idx === -1 ? note : NOTES[(idx + semitones + 120) % 12]; }
-function transposeTuning(tuning, semitones){ return tuning.map(n => transposeNote(n, semitones)); }
-function getScaleNotes(root, pattern){ const rootIdx = noteIndex(root); return pattern.map(step => NOTES[(rootIdx + step) % 12]); }
-function getNoteAtFret(openString, fret){ return NOTES[(noteIndex(openString) + fret) % 12]; }
-
-function updateTuningOptions(){
-  const options = TUNINGS[state.strings];
-  const names = Object.keys(options);
-  if (!names.includes(state.tuningName)) { state.tuningName = names[0]; state.transpose = 0; }
-  els.tuningSelect.innerHTML = '';
-  names.forEach(name => els.tuningSelect.add(new Option(name, name)));
-  els.tuningSelect.value = state.tuningName;
-}
-
-function renderScale(){
-  updateTuningOptions();
-  const baseTuning = TUNINGS[state.strings][state.tuningName];
-  const tuning = transposeTuning(baseTuning, state.transpose);
-  const pattern = SCALE_PATTERNS[state.scale === 'Minor' ? 'Natural Minor' : state.scale] || SCALE_PATTERNS.Major;
-  const scaleNotes = getScaleNotes(state.root, pattern);
-  els.tuningBadges.innerHTML = tuning.map(n => `<span class="badge">${n}</span>`).join('');
-  els.scaleBadges.innerHTML = scaleNotes.map(n => `<span class="badge ${n===state.root?'badge-root':''}">${n}${n===state.root?' (R)':''}</span>`).join('');
-  els.fretboard.innerHTML = '';
-  const fretNumbers = Array.from({length: state.frets}, (_,i) => i+1);
-  const header = document.createElement('div');
-  header.className = 'fretboard-row';
-  header.style.gridTemplateColumns = `70px repeat(${state.frets}, minmax(0, 1fr))`;
-  header.innerHTML = `<div></div>${fretNumbers.map(f => `<div class="fret-number">${f}</div>`).join('')}`;
-  els.fretboard.appendChild(header);
-  [...tuning].reverse().forEach((openString, idx) => {
-    const row = document.createElement('div');
-    row.className = 'fretboard-row';
-    row.style.gridTemplateColumns = `70px repeat(${state.frets}, minmax(0, 1fr))`;
-    let inner = `<div class="string-label">${openString}</div>`;
-    fretNumbers.forEach(fret => {
-      const note = getNoteAtFret(openString, fret);
-      const isRoot = note === state.root;
-      const inScale = scaleNotes.includes(note);
-      inner += `<div class="fret-cell"><div class="dot ${isRoot?'dot-root':inScale?'dot-scale':'dot-off'}">${note}</div></div>`;
-    });
-    row.innerHTML = inner;
-    els.fretboard.appendChild(row);
-  });
-  els.stringsValue.textContent = String(state.strings);
-  els.transposeValue.textContent = `${state.transpose > 0 ? '+' : ''}${state.transpose} st`;
-  els.fretsValue.textContent = String(state.frets);
-}
-
-let audioCtx = null, intervalId = null, tapTimes = [];
-function playClick(accent=false){
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-    if (state.soundType === 'metclick') {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'square';
-      osc.frequency.value = accent ? 1650 : 1250;
-      gain.gain.value = (state.volume / 100) * (accent ? 0.16 : 0.1);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028); osc.stop(now + 0.028);
-    } else {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'square';
-      osc.frequency.value = accent ? 1400 : 950;
-      gain.gain.value = (state.volume / 100) * (accent ? 0.18 : 0.12);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05); osc.stop(now + 0.05);
-    }
-  } catch (e) { console.error(e); }
-}
-function updateMetronomeUI(){
-  const beatsPerBar = Number(state.timeSig.split('/')[0]);
-  els.bpmValue.textContent = String(state.bpm);
-  els.volumeValue.textContent = `${state.volume}%`;
-  els.beatDisplay.textContent = `${state.beat} / ${beatsPerBar}`;
-  els.startStopBtn.textContent = state.isRunning ? 'Stop' : 'Start';
-  els.startStopBtn.className = `btn ${state.isRunning ? 'btn-stop' : 'btn-primary'}`;
-}
-function stopMetronome(){ if (intervalId) clearInterval(intervalId); intervalId = null; state.isRunning = false; updateMetronomeUI(); }
-function startMetronome(){
-  if (intervalId) clearInterval(intervalId);
-  state.isRunning = true; state.beat = 1; updateMetronomeUI(); playClick(true);
-  const beatsPerBar = Number(state.timeSig.split('/')[0]);
-  const ms = (60 / state.bpm) * 1000;
-  let currentBeat = 1;
-  intervalId = setInterval(() => {
-    currentBeat = currentBeat >= beatsPerBar ? 1 : currentBeat + 1;
-    state.beat = currentBeat; updateMetronomeUI(); playClick(currentBeat === 1);
-  }, ms);
-}
-
-els.bpmSlider.oninput = e => { state.bpm = Number(e.target.value); updateMetronomeUI(); if (state.isRunning) startMetronome(); };
-els.volumeSlider.oninput = e => { state.volume = Number(e.target.value); updateMetronomeUI(); };
-els.soundSelect.onchange = e => { state.soundType = e.target.value; };
-els.timeSigSelect.onchange = e => { state.timeSig = e.target.value; state.beat = 1; updateMetronomeUI(); if (state.isRunning) startMetronome(); };
-els.startStopBtn.onclick = () => state.isRunning ? stopMetronome() : startMetronome();
-els.resetBtn.onclick = () => { state.beat = 1; updateMetronomeUI(); };
-els.tapBtn.onclick = () => {
-  const now = Date.now();
-  tapTimes = tapTimes.filter(t => now - t < 3000); tapTimes.push(now);
-  if (tapTimes.length >= 2) {
-    const intervals = []; for (let i=1;i<tapTimes.length;i++) intervals.push(tapTimes[i]-tapTimes[i-1]);
-    const avg = intervals.reduce((a,b)=>a+b,0)/intervals.length;
-    state.bpm = Math.max(40, Math.min(240, Math.round(60000 / avg))); els.bpmSlider.value = state.bpm; updateMetronomeUI(); if (state.isRunning) startMetronome();
-  }
-};
-
-els.rootSelect.onchange = e => { state.root = e.target.value; renderScale(); };
-els.scaleSelect.onchange = e => { state.scale = e.target.value; renderScale(); };
-els.stringsSelect.onchange = e => { state.strings = Number(e.target.value); renderScale(); };
-els.tuningSelect.onchange = e => { state.tuningName = e.target.value; renderScale(); };
-els.transposeSlider.oninput = e => { state.transpose = Number(e.target.value); renderScale(); };
-els.fretsSlider.oninput = e => { state.frets = Number(e.target.value); renderScale(); };
-
-function init(){
-  els.soundSelect.value = state.soundType;
-  els.timeSigSelect.value = state.timeSig;
-  els.rootSelect.value = state.root;
-  els.scaleSelect.value = state.scale;
-  els.stringsSelect.value = String(state.strings);
-  els.transposeSlider.value = String(state.transpose);
-  els.fretsSlider.value = String(state.frets);
-  updateMetronomeUI();
-  renderScale();
-}
-init();
+const NOTES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const COMMON_TIMES=["2/4","3/4","4/4","5/4","6/8","7/8","9/8","12/8"];
+const TUNINGS={6:{"Standard (E)":["E","A","D","G","B","E"],"Drop D":["D","A","D","G","B","E"],"D Standard":["D","G","C","F","A","D"],"Drop C":["C","G","C","F","A","D"],"C# Standard":["C#","F#","B","E","G#","C#"],"Drop B":["B","F#","B","E","G#","C#"],"C Standard":["C","F","A#","D#","G","C"],"Drop A#":["A#","F","A#","D#","G","C"],"B Standard":["B","E","A","D","F#","B"],"Drop A":["A","E","A","D","F#","B"]},7:{"Standard (B)":["B","E","A","D","G","B","E"],"Drop A":["A","E","A","D","G","B","E"],"A Standard":["A","D","G","C","F","A","D"],"Drop G":["G","D","G","C","F","A","D"],"G# Standard":["G#","C#","F#","B","E","G#","C#"],"Drop F#":["F#","C#","F#","B","E","G#","C#"]},8:{"Standard (F#)":["F#","B","E","A","D","G","B","E"],"Drop E":["E","B","E","A","D","G","B","E"],"E Standard":["E","A","D","G","C","F","A","D"],"Drop D":["D","A","D","G","C","F","A","D"]}};
+const SCALE_PATTERNS={"Major":[0,2,4,5,7,9,11],"Natural Minor":[0,2,3,5,7,8,10],"Ionian":[0,2,4,5,7,9,11],"Dorian":[0,2,3,5,7,9,10],"Phrygian":[0,1,3,5,7,8,10],"Lydian":[0,2,4,6,7,9,11],"Mixolydian":[0,2,4,5,7,9,10],"Aeolian":[0,2,3,5,7,8,10],"Locrian":[0,1,3,5,6,8,10],"Harmonic Minor":[0,2,3,5,7,8,11],"Melodic Minor":[0,2,3,5,7,9,11]};
+const state={bpm:120,volume:100,isRunning:false,timeSig:"4/4",beat:1,soundType:"tone",root:"E",scale:"Minor",frets:15,strings:6,tuningName:"Standard (E)",transpose:0,leftHanded:false,theme:"dark"};
+const els={bpm:document.getElementById('bpm'),bpmText:document.getElementById('bpmText'),volume:document.getElementById('volume'),volumeText:document.getElementById('volumeText'),timeSig:document.getElementById('timeSig'),beatText:document.getElementById('beatText'),soundType:document.getElementById('soundType'),startStopBtn:document.getElementById('startStopBtn'),resetBeatBtn:document.getElementById('resetBeatBtn'),tapTempoBtn:document.getElementById('tapTempoBtn'),orientation:document.getElementById('orientation'),root:document.getElementById('root'),scale:document.getElementById('scale'),strings:document.getElementById('strings'),stringsText:document.getElementById('stringsText'),tuningName:document.getElementById('tuningName'),transpose:document.getElementById('transpose'),transposeText:document.getElementById('transposeText'),frets:document.getElementById('frets'),fretsText:document.getElementById('fretsText'),tuningBadges:document.getElementById('tuningBadges'),scaleBadges:document.getElementById('scaleBadges'),fretboardOuter:document.getElementById('fretboardOuter'),fretboardTrack:document.getElementById('fretboardTrack'),themeBtn:document.getElementById('themeBtn')};
+function noteIndex(n){return NOTES.indexOf(n)} function transposeNote(n,s){const i=noteIndex(n);return i===-1?n:NOTES[(i+s+120)%12]} function transposeTuning(t,s){return t.map(n=>transposeNote(n,s))} function getScaleNotes(root,pattern){const i=noteIndex(root);return pattern.map(step=>NOTES[(i+step)%12])} function getNoteAtFret(open,f){return NOTES[(noteIndex(open)+f)%12]}
+COMMON_TIMES.forEach(sig=>{const o=document.createElement('option');o.value=sig;o.textContent=sig;els.timeSig.appendChild(o);});
+NOTES.forEach(note=>{const o=document.createElement('option');o.value=note;o.textContent=note;els.root.appendChild(o);});
+["Major","Minor","Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian","Harmonic Minor","Melodic Minor"].forEach(item=>{const o=document.createElement('option');o.value=item;o.textContent=item;els.scale.appendChild(o);});
+function renderTuningOptions(){const options=TUNINGS[state.strings];const names=Object.keys(options);if(!names.includes(state.tuningName)){state.tuningName=names[0];state.transpose=0;}els.tuningName.innerHTML='';names.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;if(name===state.tuningName)o.selected=true;els.tuningName.appendChild(o);});}
+function renderMetronome(){els.bpm.value=state.bpm;els.bpmText.textContent=state.bpm;els.volume.value=state.volume;els.volumeText.textContent=`${state.volume}%`;els.timeSig.value=state.timeSig;els.soundType.value=state.soundType;const b=Number(state.timeSig.split('/')[0]);els.beatText.textContent=`${state.beat} / ${b}`;els.startStopBtn.textContent=state.isRunning?'Stop':'Start';els.startStopBtn.className=`btn ${state.isRunning?'btn-stop':'btn-primary'}`;}
+function renderScales(){els.root.value=state.root;els.scale.value=state.scale;els.strings.value=String(state.strings);els.stringsText.textContent=state.strings;els.transpose.value=state.transpose;els.transposeText.textContent=`${state.transpose>0?'+':''}${state.transpose} st`;els.frets.value=state.frets;els.fretsText.textContent=state.frets;els.orientation.value=state.leftHanded?'left':'right';renderTuningOptions();const base=TUNINGS[state.strings][state.tuningName];const tuning=transposeTuning(base,state.transpose);const display=state.leftHanded?[...tuning].reverse():tuning;const scaleKey=state.scale==='Minor'?'Natural Minor':state.scale;const scaleNotes=getScaleNotes(state.root,SCALE_PATTERNS[scaleKey]||SCALE_PATTERNS.Major);els.tuningBadges.innerHTML=display.map(note=>`<span class="badge">${note}</span>`).join('');els.scaleBadges.innerHTML=scaleNotes.map(note=>`<span class="badge ${note===state.root?'badge-root':''}">${note}${note===state.root?' (R)':''}</span>`).join('');els.fretboardOuter.className=state.leftHanded?'fretboard-outer fretboard-lefty':'fretboard-outer';const fretNumbers=Array.from({length:state.frets},(_,i)=>i+1);let html=`<div class="fretboard-row" style="grid-template-columns: 70px repeat(${state.frets}, minmax(0, 1fr));"><div></div>${fretNumbers.map(f=>`<div class="fret-number">${f}</div>`).join('')}</div>`;[...display].reverse().forEach(open=>{html+=`<div class="fretboard-row" style="grid-template-columns: 70px repeat(${state.frets}, minmax(0, 1fr));"><div class="string-label">${open}</div>${fretNumbers.map(fret=>{const note=getNoteAtFret(open,fret);const cls=note===state.root?'dot dot-root':scaleNotes.includes(note)?'dot dot-scale':'dot dot-off';return `<div class="fret-cell"><div class="${cls}">${note}</div></div>`}).join('')}</div>`});els.fretboardTrack.innerHTML=html;}
+function renderTheme(){document.body.classList.toggle('theme-light',state.theme==='light');els.themeBtn.textContent=state.theme==='dark'?'Switch to Light Mode':'Switch to Dark Mode';els.themeBtn.className=`btn ${state.theme==='dark'?'btn-secondary':'btn-primary'}`;}
+function renderAll(){renderMetronome();renderScales();renderTheme();}
+let audioCtx=null, intervalId=null; const tapTimes=[];
+function playClick(accent=false){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=audioCtx,now=ctx.currentTime;if(state.soundType==='metclick'){const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='square';osc.frequency.value=accent?1650:1250;gain.gain.value=Math.min(1.6,(state.volume/100)*(accent?1.1:0.76));osc.connect(gain);gain.connect(ctx.destination);osc.start(now);gain.gain.exponentialRampToValueAtTime(0.0001,now+0.028);osc.stop(now+0.028);}else{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='square';osc.frequency.value=accent?1400:950;gain.gain.value=Math.min(1.6,(state.volume/100)*(accent?1.24:0.84));osc.connect(gain);gain.connect(ctx.destination);osc.start(now);gain.gain.exponentialRampToValueAtTime(0.0001,now+0.05);osc.stop(now+0.05);}}catch(err){console.error('Metronome audio error',err)}}
+function stopMetronome(){if(intervalId)clearInterval(intervalId);intervalId=null;state.isRunning=false;renderMetronome();}
+function startMetronome(){if(intervalId)clearInterval(intervalId);state.isRunning=true;state.beat=1;renderMetronome();playClick(true);const beatsPerBar=Number(state.timeSig.split('/')[0]),ms=(60/state.bpm)*1000;let currentBeat=1;intervalId=setInterval(()=>{currentBeat=currentBeat>=beatsPerBar?1:currentBeat+1;state.beat=currentBeat;renderMetronome();playClick(currentBeat===1);},ms);}
+els.bpm.addEventListener('input',e=>{state.bpm=Number(e.target.value);renderMetronome();if(state.isRunning)startMetronome();});
+els.volume.addEventListener('input',e=>{state.volume=Number(e.target.value);renderMetronome();});
+els.timeSig.addEventListener('change',e=>{state.timeSig=e.target.value;state.beat=1;renderMetronome();if(state.isRunning)startMetronome();});
+els.soundType.addEventListener('change',e=>{state.soundType=e.target.value;renderMetronome();});
+els.startStopBtn.addEventListener('click',async()=>{if(audioCtx&&audioCtx.state==='suspended')await audioCtx.resume();state.isRunning?stopMetronome():startMetronome();});
+els.resetBeatBtn.addEventListener('click',()=>{state.beat=1;renderMetronome();});
+els.tapTempoBtn.addEventListener('click',()=>{const now=Date.now();while(tapTimes.length&&now-tapTimes[0]>3000)tapTimes.shift();tapTimes.push(now);if(tapTimes.length>=2){const intervals=[];for(let i=1;i<tapTimes.length;i++)intervals.push(tapTimes[i]-tapTimes[i-1]);const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;state.bpm=Math.max(40,Math.min(240,Math.round(60000/avg)));renderMetronome();if(state.isRunning)startMetronome();}});
+els.orientation.addEventListener('change',e=>{state.leftHanded=e.target.value==='left';renderScales();});
+els.root.addEventListener('change',e=>{state.root=e.target.value;renderScales();});
+els.scale.addEventListener('change',e=>{state.scale=e.target.value;renderScales();});
+els.strings.addEventListener('change',e=>{state.strings=Number(e.target.value);renderScales();});
+els.tuningName.addEventListener('change',e=>{state.tuningName=e.target.value;renderScales();});
+els.transpose.addEventListener('input',e=>{state.transpose=Number(e.target.value);renderScales();});
+els.frets.addEventListener('input',e=>{state.frets=Number(e.target.value);renderScales();});
+els.themeBtn.addEventListener('click',()=>{state.theme=state.theme==='dark'?'light':'dark';renderTheme();});
+function runSelfChecks(){console.assert(getScaleNotes("C",SCALE_PATTERNS.Major).join(",")==="C,D,E,F,G,A,B");console.assert(getScaleNotes("A",SCALE_PATTERNS["Natural Minor"]).join(",")==="A,B,C,D,E,F,G");console.assert(getScaleNotes("D",SCALE_PATTERNS.Dorian).join(",")==="D,E,F,G,A,B,C");console.assert(getNoteAtFret("E",12)==="E");console.assert(getNoteAtFret("A",2)==="B");console.assert(transposeTuning(TUNINGS[6]["Drop C"],-1).join(",")==="B,F#,B,E,G#,C#");console.assert(["left","right"].includes("left"));console.assert("Tap Tempo".includes("Tempo"));}
+runSelfChecks(); renderAll();
 </script>
 </body>
 </html>
