@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Dupper Guitar App — Circle of Fifths</title>
+  <style>
+    :root {
+      --bg: linear-gradient(180deg, #08090f 0%, #030409 100%);
+      --text: #f4f7fb;
+      --title-bg: linear-gradient(135deg, rgba(8,12,20,0.88), rgba(15,8,20,0.82));
+      --title-border: rgba(83, 221, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(51,230,255,0.18), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,0,128,0.14), transparent 24%),
+        var(--bg);
+    }
+    .site-shell {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .site-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--title-border);
+      background: var(--title-bg);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06);
+    }
+    .site-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      color: #b6f7ff;
+      text-shadow: 0 0 10px rgba(53,230,255,0.35), 0 0 20px rgba(255,0,128,0.14);
+    }
+    .site-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .nav-btn {
+      border-radius: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 800;
+      border: 1px solid rgba(83,221,255,0.32);
+      background: rgba(53,230,255,0.12);
+      color: #9bf1ff;
+      box-shadow: 0 0 16px rgba(53,230,255,0.08);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <div class="site-top">
+      <div class="site-title">Super Dupper Guitar App</div>
+      <div class="site-nav">
+        <a class="nav-btn" href="index.html">Metronome + Scale Viewer</a>
+      </div>
+    </div>
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react,typescript">
+const WHEEL_SEGMENTS = [
+  { major: "C", minor: "Am" },
+  { major: "G", minor: "Em" },
+  { major: "D", minor: "Bm" },
+  { major: "A", minor: "F#m" },
+  { major: "E", minor: "C#m" },
+  { major: "B", minor: "G#m" },
+  { major: "G♭", minor: "E♭m" },
+  { major: "D♭", minor: "B♭m" },
+  { major: "A♭", minor: "Fm" },
+  { major: "E♭", minor: "Cm" },
+  { major: "B♭", minor: "Gm" },
+  { major: "F", minor: "Dm" },
+] as const;
+
+const MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
+const NATURAL_MINOR_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+const LETTER_TO_SEMITONE: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const ROMAN_MAJOR = ["I", "ii", "iii", "IV", "V", "vi", "vii°"];
+const ROMAN_MINOR = ["i", "ii°", "III", "iv", "v", "VI", "VII"];
+
+type Selection = { type: "major"; note: string } | { type: "minor"; note: string } | null;
+type Mode = "major" | "minor";
+
+type ChordInfo = {
+  degree: number;
+  roman: string;
+  solfege: string;
+  note: string;
+  quality: "major" | "minor" | "diminished";
+  qualityLabel: string;
+  chord: string;
+};
+
+type SelectionData = {
+  title: string;
+  mode: Mode;
+  rootLabel: string;
+  scaleNotes: string[];
+  chords: ChordInfo[];
+  relativeText: string;
+  pairedMajor: string;
+  pairedMinor: string;
+  signatureIndex: number;
+  wheelRomans: {
+    major: Record<number, string>;
+    minor: Record<number, string>;
+  };
+  wheelHighlights: {
+    major: Set<number>;
+    minor: Set<number>;
+  };
+};
+
+type Geometry = {
+  separatorWidth: number;
+  outerOuterRadius: number;
+  outerInnerRadius: number;
+  innerOuterRadius: number;
+  innerInnerRadius: number;
+  centerRadius: number;
+  outerLabelRadius: number;
+  outerRomanRadius: number;
+  innerLabelRadius: number;
+  innerRomanRadius: number;
+};
+
+const GEOMETRY: Geometry = {
+  separatorWidth: 12,
+  outerOuterRadius: 325,
+  outerInnerRadius: 230,
+  innerOuterRadius: 218,
+  innerInnerRadius: 123,
+  centerRadius: 111,
+  outerLabelRadius: 278,
+  outerRomanRadius: 244,
+  innerLabelRadius: (123 + 218) / 2 + 2,
+  innerRomanRadius: (123 + 218) / 2 + 20,
+};
+
+function normaliseAccidental(note: string) {
+  return note.replace(/#/g, "♯").replace(/b/g, "♭");
+}
+
+function accidentalOffset(accidental: string) {
+  if (!accidental) return 0;
+  return [...accidental].reduce((sum, char) => {
+    if (char === "♯") return sum + 1;
+    if (char === "♭") return sum - 1;
+    return sum;
+  }, 0);
+}
+
+function parseNote(note: string) {
+  const normalised = normaliseAccidental(note);
+  return { letter: normalised[0], accidental: normalised.slice(1) };
+}
+
+function noteToPitchClass(note: string) {
+  const { letter, accidental } = parseNote(note);
+  return (LETTER_TO_SEMITONE[letter] + accidentalOffset(accidental) + 120) % 12;
+}
+
+function buildSpelledNote(letter: string, diff: number) {
+  if (diff === 0) return letter;
+  if (diff > 0) return `${letter}${"♯".repeat(diff)}`;
+  return `${letter}${"♭".repeat(Math.abs(diff))}`;
+}
+
+function spellScale(root: string, intervals: number[]) {
+  const parsedRoot = parseNote(root);
+  const rootLetterIndex = LETTERS.indexOf(parsedRoot.letter);
+  const rootSemitone = noteToPitchClass(root);
+
+  return intervals.map((interval, index) => {
+    const targetLetter = LETTERS[(rootLetterIndex + index) % 7];
+    const targetNatural = LETTER_TO_SEMITONE[targetLetter];
+    const targetSemitone = (rootSemitone + interval) % 12;
+    let diff = targetSemitone - targetNatural;
+    if (diff > 6) diff -= 12;
+    if (diff < -6) diff += 12;
+    return buildSpelledNote(targetLetter, diff);
+  });
+}
+
+function chordQualityLabel(quality: ChordInfo["quality"]) {
+  if (quality === "major") return "major";
+  if (quality === "minor") return "minor";
+  return "diminished";
+}
+
+function noteToSolfege(note: string) {
+  const tonicLetter = parseNote(note).letter;
+  const map: Record<string, string> = {
+    C: "Do",
+    D: "Re",
+    E: "Mi",
+    F: "Fa",
+    G: "Sol",
+    A: "La",
+    B: "Ti",
+  };
+  return map[tonicLetter] || note;
+}
+
+function noteAccidentalWords(note: string) {
+  const accidental = parseNote(note).accidental;
+  if (!accidental) return [] as string[];
+  return [...accidental].map((char) => {
+    if (char === "♯") return "sharp";
+    if (char === "♭") return "flat";
+    return char;
+  });
+}
+
+function buildChords(scaleNotes: string[], mode: Mode): ChordInfo[] {
+  const qualities: ChordInfo["quality"][] = mode === "major"
+    ? ["major", "minor", "minor", "major", "major", "minor", "diminished"]
+    : ["minor", "diminished", "major", "minor", "minor", "major", "major"];
+
+  return scaleNotes.map((note, index) => {
+    const quality = qualities[index];
+    const suffix = quality === "minor" ? "m" : quality === "diminished" ? "dim" : "";
+    const roman = mode === "major" ? ROMAN_MAJOR[index] : ROMAN_MINOR[index];
+    return {
+      degree: index + 1,
+      roman,
+      solfege: noteToSolfege(note),
+      note,
+      quality,
+      qualityLabel: chordQualityLabel(quality),
+      chord: `${note}${suffix}`,
+    };
+  });
+}
+
+function wrapIndex(index: number) {
+  return (index + 12) % 12;
+}
+
+function buildMajorWheelData(signatureIndex: number) {
+  return {
+    major: {
+      [wrapIndex(signatureIndex - 1)]: "IV",
+      [wrapIndex(signatureIndex)]: "I",
+      [wrapIndex(signatureIndex + 1)]: "V",
+    },
+    minor: {
+      [wrapIndex(signatureIndex - 1)]: "ii",
+      [wrapIndex(signatureIndex)]: "vi",
+      [wrapIndex(signatureIndex + 1)]: "iii",
+      [wrapIndex(signatureIndex + 2)]: "vii°",
+    },
+  };
+}
+
+function buildMinorWheelData(signatureIndex: number) {
+  return {
+    major: {
+      [wrapIndex(signatureIndex - 1)]: "VI",
+      [wrapIndex(signatureIndex)]: "III",
+      [wrapIndex(signatureIndex + 1)]: "VII",
+    },
+    minor: {
+      [wrapIndex(signatureIndex - 1)]: "iv",
+      [wrapIndex(signatureIndex)]: "i",
+      [wrapIndex(signatureIndex + 1)]: "v",
+      [wrapIndex(signatureIndex + 2)]: "ii°",
+    },
+  };
+}
+
+function buildWheelHighlights(signatureIndex: number) {
+  return {
+    major: new Set<number>([
+      wrapIndex(signatureIndex - 1),
+      wrapIndex(signatureIndex),
+      wrapIndex(signatureIndex + 1),
+    ]),
+    minor: new Set<number>([
+      wrapIndex(signatureIndex - 1),
+      wrapIndex(signatureIndex),
+      wrapIndex(signatureIndex + 1),
+      wrapIndex(signatureIndex + 2),
+    ]),
+  };
+}
+
+function getSelectionData(sel: Selection): SelectionData | null {
+  if (!sel) return null;
+
+  if (sel.type === "major") {
+    const majorScale = spellScale(sel.note, MAJOR_INTERVALS);
+    const relativeMinorRoot = majorScale[5];
+    const relativeMinorLabel = `${relativeMinorRoot}m`;
+    const signatureIndex = WHEEL_SEGMENTS.findIndex((segment) => segment.major === sel.note);
+
+    return {
+      title: `${sel.note} major`,
+      mode: "major",
+      rootLabel: sel.note,
+      scaleNotes: majorScale,
+      chords: buildChords(majorScale, "major"),
+      relativeText: `${relativeMinorLabel} is the relative minor of ${sel.note} major.`,
+      pairedMajor: sel.note,
+      pairedMinor: relativeMinorLabel,
+      signatureIndex,
+      wheelRomans: buildMajorWheelData(signatureIndex),
+      wheelHighlights: buildWheelHighlights(signatureIndex),
+    };
+  }
+
+  const minorRoot = sel.note.replace(/m$/, "");
+  const minorScale = spellScale(minorRoot, NATURAL_MINOR_INTERVALS);
+  const relativeMajor = minorScale[2];
+  const signatureIndex = WHEEL_SEGMENTS.findIndex((segment) => segment.minor === sel.note);
+
+  return {
+    title: `${minorRoot} natural minor`,
+    mode: "minor",
+    rootLabel: `${minorRoot}m`,
+    scaleNotes: minorScale,
+    chords: buildChords(minorScale, "minor"),
+    relativeText: `${relativeMajor} major is the relative major of ${minorRoot} minor.`,
+    pairedMajor: relativeMajor,
+    pairedMinor: `${minorRoot}m`,
+    signatureIndex,
+    wheelRomans: buildMinorWheelData(signatureIndex),
+    wheelHighlights: buildWheelHighlights(signatureIndex),
+  };
+}
+
+function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+  const angle = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+}
+
+function donutSegmentPath(cx: number, cy: number, innerR: number, outerR: number, startAngle: number, endAngle: number) {
+  const p1 = polarToCartesian(cx, cy, outerR, startAngle);
+  const p2 = polarToCartesian(cx, cy, outerR, endAngle);
+  const p3 = polarToCartesian(cx, cy, innerR, endAngle);
+  const p4 = polarToCartesian(cx, cy, innerR, startAngle);
+  const largeArc = endAngle - startAngle <= 180 ? 0 : 1;
+  return [
+    `M ${p1.x} ${p1.y}`,
+    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${p2.x} ${p2.y}`,
+    `L ${p3.x} ${p3.y}`,
+    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${p4.x} ${p4.y}`,
+    "Z",
+  ].join(" ");
+}
+
+function separatorLineEndpoints(cx: number, cy: number, innerR: number, outerR: number, angleDeg: number) {
+  const start = polarToCartesian(cx, cy, innerR, angleDeg);
+  const end = polarToCartesian(cx, cy, outerR, angleDeg);
+  return { start, end };
+}
+
+function renderSegmentText(
+  text: string,
+  cx: number,
+  cy: number,
+  radius: number,
+  angle: number,
+  className: string,
+  onClick: () => void,
+) {
+  const pos = polarToCartesian(cx, cy, radius, angle);
+  return (
+    <text
+      x={pos.x}
+      y={pos.y}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      className={className}
+      onClick={onClick}
+    >
+      {text}
+    </text>
+  );
+}
+
+function renderStackedSegmentLabel(
+  noteText: string,
+  romanTextValue: string,
+  cx: number,
+  cy: number,
+  radius: number,
+  angle: number,
+  noteClassName: string,
+  romanClassName: string,
+  onClick: () => void,
+) {
+  const pos = polarToCartesian(cx, cy, radius, angle);
+  return (
+    <g transform={`translate(${pos.x} ${pos.y})`} onClick={onClick} style={{ cursor: "pointer" }}>
+      <text
+        x={0}
+        y={romanTextValue ? -8 : 0}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className={noteClassName}
+      >
+        {noteText}
+      </text>
+      {romanTextValue ? (
+        <text
+          x={0}
+          y={12}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className={romanClassName}
+        >
+          {romanTextValue}
+        </text>
+      ) : null}
+    </g>
+  );
+}
+
+function toggleSelection(
+  current: Selection,
+  next: Exclude<Selection, null>,
+  setSelection: React.Dispatch<React.SetStateAction<Selection>>,
+) {
+  if (current && current.type === next.type && current.note === next.note) {
+    setSelection(null);
+    return;
+  }
+  setSelection(next);
+}
+
+function runTheoryChecks() {
+  console.assert(
+    donutSegmentPath(350, 350, GEOMETRY.outerInnerRadius, GEOMETRY.outerOuterRadius, 1, 29).includes(`A ${GEOMETRY.outerOuterRadius} ${GEOMETRY.outerOuterRadius}`) &&
+      donutSegmentPath(350, 350, GEOMETRY.innerInnerRadius, GEOMETRY.innerOuterRadius, 1, 29).includes(`A ${GEOMETRY.innerOuterRadius} ${GEOMETRY.innerOuterRadius}`),
+    "Ring geometry should use valid arc paths",
+  );
+  console.assert(
+    GEOMETRY.outerOuterRadius - GEOMETRY.outerInnerRadius === GEOMETRY.innerOuterRadius - GEOMETRY.innerInnerRadius,
+    "Outer and inner ring thicknesses should match for a more uniform look",
+  );
+  console.assert(
+    GEOMETRY.outerInnerRadius > GEOMETRY.innerOuterRadius,
+    "There should be a visible gap between the outer and inner rings",
+  );
+  console.assert(
+    GEOMETRY.innerInnerRadius > GEOMETRY.centerRadius,
+    "There should be a visible gap between the inner ring and centre",
+  );
+  console.assert(
+    ((GEOMETRY.outerInnerRadius + GEOMETRY.innerOuterRadius) / 2) > GEOMETRY.innerOuterRadius,
+    "Outer/inner separator ring should sit between the two note rings",
+  );
+  console.assert(
+    ((GEOMETRY.innerInnerRadius + GEOMETRY.centerRadius) / 2) > GEOMETRY.centerRadius,
+    "Inner/centre separator ring should sit between the inner ring and centre",
+  );
+  console.assert(
+    GEOMETRY.centerRadius > 0,
+    "Center radius should be a valid positive number",
+  );
+  const separatorAtTop = separatorLineEndpoints(350, 350, GEOMETRY.centerRadius, GEOMETRY.outerOuterRadius, 0);
+  console.assert(
+    Math.round(separatorAtTop.start.x) === Math.round(separatorAtTop.end.x),
+    "Separator lines should stay straight for constant visual width",
+  );
+  console.assert(
+    spellScale("C", MAJOR_INTERVALS).join(",") === "C,D,E,F,G,A,B",
+    "C major scale should spell correctly",
+  );
+  console.assert(
+    spellScale("F", MAJOR_INTERVALS).join(",") === "F,G,A,B♭,C,D,E",
+    "F major should use B♭",
+  );
+  console.assert(
+    spellScale("A", NATURAL_MINOR_INTERVALS).join(",") === "A,B,C,D,E,F,G",
+    "A natural minor should spell correctly",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.pairedMinor === "Am",
+    "C major should pair with A minor",
+  );
+  console.assert(
+    getSelectionData({ type: "minor", note: "Am" })?.pairedMajor === "C",
+    "A minor should pair with C major",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.chords.map((c) => c.chord).join(",") === "C,Dm,Em,F,G,Am,Bdim",
+    "C major chords should harmonise correctly",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "D" })?.chords.map((c) => c.solfege).join(",") === "Re,Mi,Fa,Sol,La,Ti,Do",
+    "Displayed solfege should reflect the actual note letters in D major",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.chords.map((c) => c.solfege).join(",") === "Do,Re,Mi,Fa,Sol,La,Ti",
+    "Displayed solfege should match C major note names",
+  );
+  console.assert(
+    noteAccidentalWords("G♯").join(",") === "sharp",
+    "Sharp accidental should be spelled out",
+  );
+  console.assert(
+    noteAccidentalWords("D♭").join(",") === "flat",
+    "Flat accidental should be spelled out",
+  );
+  console.assert(
+    ("G♯ natural minor".length > 14) && ("C major".length <= 11),
+    "Title sizing thresholds should distinguish long and short centre titles",
+  );
+  console.assert(
+    getSelectionData({ type: "minor", note: "Em" })?.chords.map((c) => c.chord).join(",") === "Em,F♯dim,G,Am,Bm,C,D",
+    "E natural minor chords should harmonise correctly",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.wheelHighlights.major.size === 3,
+    "Major wheel highlight should always show 3 outer-ring sectors",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.wheelHighlights.minor.size === 4,
+    "Major wheel highlight should always show 4 inner-ring sectors",
+  );
+  console.assert(
+    getSelectionData({ type: "major", note: "C" })?.wheelRomans.minor[2] === "vii°",
+    "C major should show vii° on the Bm slot of the wheel",
+  );
+  console.assert(
+    getSelectionData({ type: "minor", note: "Am" })?.wheelRomans.minor[2] === "ii°",
+    "A minor should show ii° on the Bm slot of the wheel",
+  );
+  console.assert(
+    Array.from(getSelectionData({ type: "major", note: "D" })!.wheelHighlights.major).sort((a, b) => a - b).join(",") === "1,2,3",
+    "D major outer highlights should be G, D, A positions",
+  );
+  console.assert(
+    Array.from(getSelectionData({ type: "major", note: "D" })!.wheelHighlights.minor).sort((a, b) => a - b).join(",") === "1,2,3,4",
+    "D major inner highlights should be Em, Bm, F#m, C#m positions",
+  );
+}
+
+runTheoryChecks();
+
+function CircleOfFifthsApp() {
+  const [theme, setTheme] = React.useState<"dark" | "light">("dark");
+  const [selection, setSelection] = React.useState<Selection>(null);
+
+  React.useEffect(() => {
+    document.body.classList.toggle("theme-light", theme === "light");
+    return () => document.body.classList.remove("theme-light");
+  }, [theme]);
+
+  const selectionData = React.useMemo(() => getSelectionData(selection), [selection]);
+
+  function getMajorState(index: number) {
+    if (!selectionData) return "idle";
+    const isClickedMajor = selection?.type === "major" && selectionData.signatureIndex === index;
+    if (isClickedMajor) return "root-major";
+    if (selectionData.wheelHighlights.major.has(index)) return "in-key";
+    return "faded";
+  }
+
+  function getMinorState(index: number) {
+    if (!selectionData) return "idle";
+    const isClickedMinor = selection?.type === "minor" && selectionData.signatureIndex === index;
+    if (isClickedMinor) return "root-minor";
+    if (selectionData.wheelHighlights.minor.has(index)) return "in-key";
+    return "faded";
+  }
+
+  return (
+    <div className="min-h-screen">
+      <style>{`
+        :root {
+          --bg: linear-gradient(180deg, #08090f 0%, #030409 100%);
+          --text: #f4f7fb;
+          --muted: #95a1b2;
+          --panel: linear-gradient(180deg, rgba(10,10,18,0.96), rgba(6,6,10,0.97));
+          --panel-border: rgba(52,63,79,0.95);
+          --title-bg: linear-gradient(135deg, rgba(8,12,20,0.88), rgba(15,8,20,0.82));
+          --title-border: rgba(83, 221, 255, 0.18);
+          --cyan: #35e6ff;
+          --pink: #ff007a;
+          --separator: #030409;
+        }
+        body {
+          margin: 0;
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          color: var(--text);
+          background:
+            radial-gradient(circle at top left, rgba(51,230,255,0.18), transparent 22%),
+            radial-gradient(circle at top right, rgba(255,0,128,0.14), transparent 24%),
+            var(--bg);
+        }
+        body.theme-light {
+          --bg: linear-gradient(180deg, #f7f9fc 0%, #edf2f8 100%);
+          --text: #161920;
+          --muted: #5d697b;
+          --panel: #ffffff;
+          --panel-border: #d6dde8;
+          --title-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(245,248,252,0.98));
+          --title-border: rgba(110,140,180,0.22);
+          --separator: #edf2f8;
+        }
+        .shell {
+          max-width: 1600px;
+          margin: 0 auto;
+          padding: 16px;
+        }
+        @media (min-width: 768px) {
+          .shell { padding: 24px; }
+        }
+        .titleBar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 14px;
+          border-radius: 18px;
+          border: 1px solid var(--title-border);
+          background: var(--title-bg);
+          box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06);
+          margin-bottom: 14px;
+        }
+        .titleBar span {
+          font-size: 20px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          color: #b6f7ff;
+          text-shadow: 0 0 10px rgba(53,230,255,0.35), 0 0 20px rgba(255,0,128,0.14);
+        }
+        body.theme-light .titleBar span { color: #16324a; text-shadow: none; }
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px;
+          align-items: start;
+        }
+        @media (min-width: 1100px) {
+          .grid {
+            grid-template-columns: minmax(620px, 1.08fr) minmax(420px, 0.92fr);
+            align-items: start;
+          }
+        }
+        .panel {
+          border-radius: 24px;
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          padding: 16px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        body.theme-light .panel { box-shadow: 0 10px 30px rgba(10,20,40,0.08); }
+        .glow-cyan { box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 28px rgba(53,230,255,0.08); }
+        .glow-pink { box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 28px rgba(255,0,128,0.08); }
+        .panelHeader {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+        .panelHeader h2 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 800;
+        }
+        .sub {
+          color: var(--muted);
+          line-height: 1.55;
+          font-size: 14px;
+        }
+        .controls {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 12px;
+        }
+        .btn {
+          border-radius: 14px;
+          padding: 10px 16px;
+          cursor: pointer;
+          font-weight: 800;
+          border: 1px solid transparent;
+          transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btnSecondary {
+          border: 1px solid rgba(83,221,255,0.24);
+          background: rgba(53,230,255,0.10);
+          color: #b6f7ff;
+          box-shadow: 0 0 16px rgba(53,230,255,0.08);
+        }
+        body.theme-light .btnSecondary {
+          color: #0f3558;
+          border-color: #4cbde1;
+          background: #eafaff;
+          box-shadow: none;
+        }
+        .wheelWrap {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 10px;
+        }
+        svg { width: 100%; height: auto; max-width: 720px; }
+        .segMajor, .segMinor {
+          cursor: pointer;
+          stroke: transparent;
+          stroke-width: 0;
+          transition: opacity 0.16s ease, filter 0.16s ease;
+        }
+        .segMajor.idle {
+          fill: rgba(18, 24, 35, 0.96);
+          opacity: 0.92;
+        }
+        .segMinor.idle {
+          fill: rgba(12, 16, 25, 0.96);
+          opacity: 0.9;
+        }
+        .segMajor.root-major, .segMinor.root-minor {
+          fill: url(#rootGlowFill);
+          opacity: 1;
+          filter: drop-shadow(0 0 14px rgba(255,0,122,0.26));
+        }
+        .segMajor.in-key, .segMinor.in-key {
+          fill: url(#scaleGlowFill);
+          opacity: 0.98;
+          filter: drop-shadow(0 0 10px rgba(53,230,255,0.12));
+        }
+        body.theme-light .segMajor.idle {
+          fill: rgba(183, 192, 206, 0.9);
+          opacity: 0.95;
+        }
+        body.theme-light .segMinor.idle {
+          fill: rgba(209, 218, 231, 0.96);
+          opacity: 0.95;
+        }
+        body.theme-light .segMajor.root-major,
+        body.theme-light .segMinor.root-minor {
+          fill: url(#rootGlowFillLight);
+          filter: drop-shadow(0 0 10px rgba(197,20,88,0.18));
+        }
+        body.theme-light .segMajor.in-key,
+        body.theme-light .segMinor.in-key {
+          fill: url(#scaleGlowFillLight);
+          filter: drop-shadow(0 0 8px rgba(53,230,255,0.08));
+        }
+        .segMajor.faded, .segMinor.faded {
+          opacity: 0.22;
+        }
+        body.theme-light .segMajor.faded,
+        body.theme-light .segMinor.faded {
+          opacity: 0.42;
+        }
+        .labelMajor, .labelMinor {
+          font-weight: 900;
+          fill: #f7fbff;
+          cursor: pointer;
+          user-select: none;
+          letter-spacing: 0.02em;
+        }
+        .romanText {
+          font-weight: 900;
+          fill: #edf5ff;
+          cursor: pointer;
+          user-select: none;
+          letter-spacing: 0.08em;
+        }
+        body.theme-light .labelMajor,
+        body.theme-light .labelMinor {
+          fill: #0f2235;
+        }
+        body.theme-light .romanText {
+          fill: #16324a;
+        }
+        .labelMajor { font-size: 17px; }
+        .labelMinor { font-size: 15px; }
+        .romanText {
+          font-size: 11px;
+          opacity: 0.96;
+        }
+        .labelFaded { opacity: 0.2; }
+        .labelInKey { opacity: 1; }
+        .romanBadgeOnWheel {
+          paint-order: stroke;
+          stroke: rgba(0,0,0,0.5);
+          stroke-width: 2px;
+          stroke-linejoin: round;
+        }
+        body.theme-light .romanBadgeOnWheel {
+          stroke: rgba(255,255,255,0.82);
+        }
+        .wheelCenter {
+          fill: rgba(220,225,232,0.95);
+          stroke: rgba(0,0,0,0.92);
+          stroke-width: 4;
+        }
+        body.theme-light .wheelCenter { fill: rgba(246,248,251,0.98); }
+        .sideStack {
+          display: grid;
+          gap: 14px;
+          align-content: start;
+        }
+        .emptyState {
+          min-height: 240px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          border-radius: 20px;
+          border: 1px dashed rgba(149,161,178,0.28);
+          background: rgba(255,255,255,0.02);
+          color: var(--muted);
+          padding: 18px;
+        }
+        .keyPillRow {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 8px;
+        }
+        .pill {
+          padding: 9px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(83,221,255,0.18);
+          font-weight: 800;
+          color: var(--text);
+        }
+        .pillRoot {
+          background: linear-gradient(90deg, #ff007a, #ff4da0);
+          border: none;
+          color: white;
+          box-shadow: 0 0 16px rgba(255,0,128,0.16);
+        }
+        .notesGrid {
+          display: grid;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+          gap: 8px;
+          margin-top: 10px;
+        }
+        @media (max-width: 900px) {
+          .notesGrid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
+        }
+        @media (max-width: 620px) {
+          .notesGrid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        .noteCard, .chordCard {
+          border-radius: 18px;
+          border: 1px solid rgba(83,221,255,0.14);
+          background: rgba(255,255,255,0.03);
+          padding: 12px;
+          min-width: 0;
+        }
+        body.theme-light .noteCard,
+        body.theme-light .chordCard {
+          background: #f9fbfe;
+          border-color: #d6dde8;
+        }
+        .noteTop {
+          font-size: 20px;
+          font-weight: 900;
+          line-height: 1;
+        }
+        .noteBottom {
+          margin-top: 8px;
+          color: var(--muted);
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .chordList {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 10px;
+        }
+        @media (max-width: 620px) {
+          .chordList {
+            grid-template-columns: 1fr;
+          }
+        }
+        .chordCardRoot {
+          border-color: rgba(255,0,122,0.38);
+          box-shadow: 0 0 18px rgba(255,0,122,0.1);
+        }
+        .chordTop {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .chordName {
+          font-size: 20px;
+          font-weight: 900;
+          line-height: 1;
+        }
+        .romanBadge {
+          border-radius: 999px;
+          padding: 6px 10px;
+          background: rgba(53,230,255,0.12);
+          color: #9bf1ff;
+          border: 1px solid rgba(83,221,255,0.28);
+          box-shadow: 0 0 14px rgba(53,230,255,0.08);
+          font-weight: 900;
+        }
+        body.theme-light .romanBadge {
+          color: #0f3558;
+          background: rgba(53,230,255,0.12);
+          border-color: rgba(76,189,225,0.34);
+          box-shadow: none;
+        }
+        .chordMeta {
+          margin-top: 8px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 700;
+        }
+      `}</style>
+
+      <div className="shell">
+        <div className="titleBar">
+          <span>Super Dupper Guitar App — Circle of Fifths</span>
+        </div>
+
+        <div className="grid">
+          <section className="panel glow-cyan">
+            <div className="panelHeader">
+              <div>
+                <h2>Interactive Circle of Fifths</h2>
+                <div className="sub">
+                  Click any major key on the outer ring or any relative minor on the inner ring.
+                  Click the same selected key again to clear the wheel.
+                </div>
+                <div className="sub" style={{ marginTop: 8, fontWeight: 800 }}>
+                  Majors outside · relative minors inside · Roman numerals appear after you select a key.
+                </div>
+              </div>
+              <div className="controls">
+                <button className="btn btnSecondary" onClick={() => setSelection(null)}>Clear</button>
+                <button className="btn btnSecondary" onClick={() => setTheme((t) => t === "dark" ? "light" : "dark")}>
+                  {theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                </button>
+              </div>
+            </div>
+
+            <div className="wheelWrap">
+              <svg viewBox="0 0 700 700" role="img" aria-label="Interactive circle of fifths">
+                <defs>
+                  <linearGradient id="rootGlowFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ff007a" />
+                    <stop offset="100%" stopColor="#c51458" />
+                  </linearGradient>
+                  <linearGradient id="scaleGlowFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#35e6ff" />
+                    <stop offset="100%" stopColor="#77c6f5" />
+                  </linearGradient>
+                  <linearGradient id="rootGlowFillLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ff5ca8" />
+                    <stop offset="100%" stopColor="#d82f74" />
+                  </linearGradient>
+                  <linearGradient id="scaleGlowFillLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#72d8ff" />
+                    <stop offset="100%" stopColor="#a8e5ff" />
+                  </linearGradient>
+                </defs>
+                {WHEEL_SEGMENTS.map((segment, index) => {
+                  const startAngle = -15 + index * 30;
+                  const endAngle = -15 + (index + 1) * 30;
+                  const midAngle = -15 + index * 30 + 15;
+                  const majorStateClass = getMajorState(index);
+                  const minorStateClass = getMinorState(index);
+                  const majorLabelClass = majorStateClass === "faded" ? "labelFaded" : "labelInKey";
+                  const minorLabelClass = minorStateClass === "faded" ? "labelFaded" : "labelInKey";
+                  const majorRoman = selectionData?.wheelRomans.major[index] || "";
+                  const minorRoman = selectionData?.wheelRomans.minor[index] || "";
+
+                  return (
+                    <g key={`${segment.major}-${segment.minor}`}>
+                      <path
+                        d={donutSegmentPath(350, 350, GEOMETRY.outerInnerRadius, GEOMETRY.outerOuterRadius, startAngle, endAngle)}
+                        className={`segMajor ${majorStateClass}`}
+                        onClick={() => toggleSelection(selection, { type: "major", note: segment.major }, setSelection)}
+                      />
+                      <path
+                        d={donutSegmentPath(350, 350, GEOMETRY.innerInnerRadius, GEOMETRY.innerOuterRadius, startAngle, endAngle)}
+                        className={`segMinor ${minorStateClass}`}
+                        onClick={() => toggleSelection(selection, { type: "minor", note: segment.minor }, setSelection)}
+                      />
+
+                      {renderStackedSegmentLabel(
+                        segment.major,
+                        majorRoman,
+                        350,
+                        350,
+                        GEOMETRY.outerLabelRadius,
+                        midAngle,
+                        `labelMajor ${majorLabelClass}`,
+                        `romanText romanBadgeOnWheel ${majorLabelClass}`,
+                        () => toggleSelection(selection, { type: "major", note: segment.major }, setSelection),
+                      )}
+
+                      {renderStackedSegmentLabel(
+                        segment.minor,
+                        minorRoman,
+                        350,
+                        350,
+                        GEOMETRY.innerLabelRadius,
+                        midAngle,
+                        `labelMinor ${minorLabelClass}`,
+                        `romanText romanBadgeOnWheel ${minorLabelClass}`,
+                        () => toggleSelection(selection, { type: "minor", note: segment.minor }, setSelection),
+                      )}
+                    </g>
+                  );
+                })}
+
+                {Array.from({ length: 12 }).map((_, index) => {
+                  const angle = -15 + index * 30;
+                  const { start, end } = separatorLineEndpoints(350, 350, GEOMETRY.centerRadius, GEOMETRY.outerOuterRadius, angle);
+                  return (
+                    <line
+                      key={`separator-${index}`}
+                      x1={start.x}
+                      y1={start.y}
+                      x2={end.x}
+                      y2={end.y}
+                      stroke="var(--separator)"
+                      strokeWidth={GEOMETRY.separatorWidth}
+                      strokeLinecap="butt"
+                      pointerEvents="none"
+                    />
+                  );
+                })}
+
+                <circle
+                  cx="350"
+                  cy="350"
+                  r={(GEOMETRY.outerInnerRadius + GEOMETRY.innerOuterRadius) / 2}
+                  fill="none"
+                  stroke="var(--separator)"
+                  strokeWidth={GEOMETRY.separatorWidth}
+                  pointerEvents="none"
+                />
+                <circle
+                  cx="350"
+                  cy="350"
+                  r={(GEOMETRY.innerInnerRadius + GEOMETRY.centerRadius) / 2}
+                  fill="none"
+                  stroke="var(--separator)"
+                  strokeWidth={GEOMETRY.separatorWidth}
+                  pointerEvents="none"
+                />
+
+                <circle cx="350" cy="350" r={GEOMETRY.centerRadius} className="wheelCenter" />
+                <text
+                  x="350"
+                  y={350}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  style={{
+                    fontSize: (() => {
+                      const title = selectionData ? selectionData.title : "Pick a key";
+                      if (title.length > 18) return 17;
+                      if (title.length > 14) return 20;
+                      if (title.length > 11) return 24;
+                      return 28;
+                    })(),
+                    fontWeight: 900,
+                    fill: "currentColor",
+                  }}
+                >
+                  {selectionData ? selectionData.title : "Pick a key"}
+                </text>
+              </svg>
+            </div>
+          </section>
+
+          <div className="sideStack">
+            <section className="panel glow-pink">
+              <div className="panelHeader">
+                <div>
+                  <h2>Key Breakdown</h2>
+                  <div className="sub">Scale notes, chord function, Roman numerals, solfège, and the relative major/minor link.</div>
+                </div>
+              </div>
+
+              {!selectionData ? (
+                <div className="emptyState">
+                  Select a key on the wheel to light up the harmony and see the full breakdown here.
+                </div>
+              ) : (
+                <>
+                  <div className="keyPillRow">
+                    <div className="pill pillRoot">{selectionData.title}</div>
+                    <div className="pill">Relative Major: {selectionData.pairedMajor}</div>
+                    <div className="pill">Relative Minor: {selectionData.pairedMinor}</div>
+                  </div>
+
+                  <div style={{ marginTop: 12 }} className="sub">{selectionData.relativeText}</div>
+
+                  <div style={{ marginTop: 18, fontWeight: 900, fontSize: 18 }}>Scale Notes</div>
+                  <div className="notesGrid">
+                    {selectionData.scaleNotes.map((note, index) => (
+                      <div key={note + index} className="noteCard">
+                        <div className="noteTop">{note}</div>
+                        <div className="noteBottom">{selectionData.chords[index].roman} · {selectionData.chords[index].solfege}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+
+            {selectionData ? (
+              <section className="panel glow-cyan">
+                <div className="panelHeader">
+                  <div>
+                    <h2>Diatonic Chords</h2>
+                    <div className="sub">Natural minor is used for minor keys, exactly as requested.</div>
+                  </div>
+                </div>
+                <div className="chordList">
+                  {selectionData.chords.map((item, index) => (
+                    <div key={item.chord} className={`chordCard ${index === 0 ? "chordCardRoot" : ""}`}>
+                      <div className="chordTop">
+                        <div className="chordName">{item.chord}</div>
+                        <div className="romanBadge">{item.roman}</div>
+                      </div>
+                      <div className="chordMeta">
+                        <span>{item.solfege}</span>
+                        {noteAccidentalWords(item.note).map((word, idx) => (
+                          <React.Fragment key={`${item.note}-acc-${idx}`}>
+                            <span>•</span>
+                            <span>{word}</span>
+                          </React.Fragment>
+                        ))}
+                        <span>•</span>
+                        <span>{item.qualityLabel}</span>
+                        <span>•</span>
+                        <span>Degree {item.degree}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<CircleOfFifthsApp />);
+
+  </script>
+</body>
+</html>
