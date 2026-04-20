@@ -615,7 +615,7 @@
 
         const label = document.createElement('div');
         label.className = 'string-label';
-        label.textContent = String(stringIndex + 1);
+        label.textContent = state.leftHanded ? String(state.strings - stringIndex) : String(stringIndex + 1);
         row.appendChild(label);
 
         const openPitchClass = noteNameToPitchClass(openString);
