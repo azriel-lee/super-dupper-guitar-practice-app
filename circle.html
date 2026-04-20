@@ -222,6 +222,7 @@
     };
 
     const STORAGE_KEY = "superDupperGuitarAppSettings";
+    const CIRCLE_SELECTION_KEY = "superDupperGuitarAppCircleSelection";
     function loadSavedSettings() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -230,7 +231,16 @@
         return {};
       }
     }
+    function loadSavedCircleSelection() {
+      try {
+        const raw = localStorage.getItem(CIRCLE_SELECTION_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
     const savedSettings = loadSavedSettings();
+    const savedCircleSelection = loadSavedCircleSelection();
     function saveSettings() {
       try {
         const payload = {
@@ -239,10 +249,11 @@
           circleSelection: state.selection,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        localStorage.setItem(CIRCLE_SELECTION_KEY, JSON.stringify(state.selection));
       } catch {}
     }
 
-    const state = { theme: savedSettings.theme === 'light' ? 'light' : 'dark', selection: savedSettings.circleSelection || null };
+    const state = { theme: savedSettings.theme === 'light' ? 'light' : 'dark', selection: savedCircleSelection || savedSettings.circleSelection || null };
     const svg = document.getElementById('wheelSvg');
     const breakdownPanel = document.getElementById('breakdownPanel');
     const chordList = document.getElementById('chordList');
