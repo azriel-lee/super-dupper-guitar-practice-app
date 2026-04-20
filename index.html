@@ -588,7 +588,7 @@
     function renderFretboard() {
       const tuningBase = TUNINGS[state.strings][state.tuningName];
       const tuning = transposeTuning(tuningBase, state.transpose);
-      const displayTuning = state.leftHanded ? [...tuning].reverse() : tuning;
+      const displayTuning = tuning;
       const scaleKey = state.scale === 'Minor' ? 'Natural Minor' : state.scale;
       const pattern = SCALE_PATTERNS[scaleKey] || SCALE_PATTERNS.Major;
       const scaleNotes = getScaleNotes(state.root, pattern);
@@ -615,7 +615,7 @@
 
         const label = document.createElement('div');
         label.className = 'string-label';
-        label.textContent = state.leftHanded ? String(state.strings - stringIndex) : String(stringIndex + 1);
+        label.textContent = String(stringIndex + 1);
         row.appendChild(label);
 
         const openPitchClass = noteNameToPitchClass(openString);
