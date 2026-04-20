@@ -88,31 +88,18 @@
     .area-creator { grid-area: creator; }
     .area-scales { grid-area: scales; }
 
-    .top-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 0;
+    .titleBar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      padding: 12px 14px; border-radius: 18px; border: 1px solid var(--title-border);
+      background: var(--title-bg); box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06);
+      margin-bottom: 14px;
     }
-    .top-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 14px;
-      border-radius: 18px;
-      border: 1px solid var(--title-border);
-      background: var(--title-bg);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 18px rgba(53,230,255,0.06);
-    }
-    .top-title span {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      color: #b6f7ff;
+    .titleBar span {
+      font-size: 20px; font-weight: 900; letter-spacing: 0.04em; color: #b6f7ff;
       text-shadow: 0 0 10px rgba(53,230,255,0.35), 0 0 20px rgba(255,0,128,0.14);
     }
-    body.theme-light .top-title span { color: #16324a; text-shadow: none; }
-
+    body.theme-light .titleBar span { color: #16324a; text-shadow: none; }
+    .topButtons { display: flex; flex-wrap: wrap; gap: 10px; }
     .panel {
       border-radius: 24px;
       border: 1px solid var(--panel-border);
@@ -220,37 +207,28 @@
     body.theme-light .dot-off { opacity: 0.5; }
     .creator-subtitle { color: var(--creator-sub); font-weight: 700; margin-bottom: 8px; }
     .creator-copy { line-height: 1.65; font-size: 15px; }
-    .creator-actions { margin-top: 12px; }
-    .theme-box { margin-top: 14px; padding: 12px; border-radius: 16px; }
-    .theme-toggle { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .theme-icon { font-size: 18px; line-height: 1; }
   </style>
 </head>
 <body>
   <div class="app-shell">
+    <div class="titleBar">
+      <span>Super Dupper Guitar App — Metronome and Scale Viewer</span>
+      <div class="topButtons">
+        <a class="btn btn-neon" href="circle.html">Circle of Fifths</a>
+        <button id="themeToggle" class="btn btn-neon">Switch to Light Mode</button>
+      </div>
+    </div>
+
     <main class="dashboard-grid">
       <div class="area-creator">
-        <div class="top-title-block">
-          <div class="top-title"><span>Super Dupper Guitar App</span></div>
-          <section class="panel glow-pink">
-            <div class="panel-header"><h2>Created by Panos Lee</h2></div>
-            <div class="creator-subtitle">Created by Panos Lee</div>
-            <div class="creator-copy">This app is free, but feel free to follow me on Instagram as a thank-you — I’ll be posting more guitar and metal stuff there!</div>
-            <div class="button-row">
-              <a class="btn btn-neon" href="https://www.instagram.com/panos.lee" target="_blank" rel="noreferrer">Press Here</a>
-              <a class="btn btn-neon" href="circle.html">Open Circle of Fifths</a>
-            </div>
-            <div class="creator-actions">
-              <div class="theme-box">
-                <div class="theme-toggle">
-                  <span class="theme-icon">🌙</span>
-                  <button id="themeToggle" class="btn btn-secondary">Switch to Light Mode</button>
-                  <span class="theme-icon">☀️</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
+        <section class="panel glow-pink">
+          <div class="panel-header"><h2>Created by Panos Lee</h2></div>
+          <div class="creator-subtitle">Created by Panos Lee</div>
+          <div class="creator-copy">This app is free, but feel free to follow me on Instagram as a thank-you — I’ll be posting more guitar and metal stuff there!</div>
+          <div class="button-row">
+            <a class="btn btn-neon" href="https://www.instagram.com/panos.lee" target="_blank" rel="noreferrer">Press Here</a>
+          </div>
+        </section>
       </div>
 
       <div class="area-metronome">
