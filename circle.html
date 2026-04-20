@@ -38,6 +38,7 @@
         radial-gradient(circle at top right, rgba(255,0,128,0.14), transparent 24%),
         var(--bg);
     }
+    button, input, select, a { font: inherit; }
     .shell { max-width: 1600px; margin: 0 auto; padding: 16px; }
     @media (min-width: 768px) { .shell { padding: 24px; } }
     .titleBar {
@@ -53,7 +54,7 @@
     body.theme-light .titleBar span { color: #16324a; text-shadow: none; }
     .topButtons, .controls { display: flex; flex-wrap: wrap; gap: 10px; }
     .btn {
-      border-radius: 14px; padding: 10px 16px; cursor: pointer; font-weight: 800;
+      border-radius: 14px; padding: 10px 16px; cursor: pointer; font-weight: 700;
       border: 1px solid rgba(83,221,255,0.24); background: rgba(53,230,255,0.10); color: #b6f7ff;
       box-shadow: 0 0 16px rgba(53,230,255,0.08); text-decoration: none;
     }
@@ -142,7 +143,8 @@
     <div class="titleBar">
       <span>Super Dupper Guitar App — Circle of Fifths</span>
       <div class="topButtons">
-        <a class="btn" href="index.html">Metronome + Scale Viewer</a>
+        <a class="btn" href="index.html">Metronome and Scale Viewer</a>
+        <button id="themeBtn" class="btn">Switch to Light Mode</button>
       </div>
     </div>
 
@@ -156,7 +158,6 @@
           </div>
           <div class="controls">
             <button id="clearBtn" class="btn">Clear</button>
-            <button id="themeBtn" class="btn">Switch to Light Mode</button>
           </div>
         </div>
 
@@ -221,22 +222,20 @@
       innerLabelRadius: (123 + 218) / 2 + 2,
     };
 
-    const STORAGE_KEY = 'superDupperGuitarAppSettings';
+    const STORAGE_KEY = "superDupperGuitarAppSettings";
     function loadSavedSettings() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? parsed : {};
+        return raw ? JSON.parse(raw) : {};
       } catch {
         return {};
       }
     }
+    const savedSettings = loadSavedSettings();
     function saveSettings() {
       try {
-        const existing = loadSavedSettings();
         const payload = {
-          ...existing,
+          ...loadSavedSettings(),
           theme: state.theme,
           circleSelection: state.selection,
         };
@@ -244,11 +243,7 @@
       } catch {}
     }
 
-    const savedSettings = loadSavedSettings();
-    const state = {
-      theme: savedSettings.theme === 'light' ? 'light' : 'dark',
-      selection: savedSettings.circleSelection || null,
-    };
+    const state = { theme: savedSettings.theme === 'light' ? 'light' : 'dark', selection: savedSettings.circleSelection || null };
     const svg = document.getElementById('wheelSvg');
     const breakdownPanel = document.getElementById('breakdownPanel');
     const chordList = document.getElementById('chordList');
@@ -533,11 +528,11 @@
     }
 
     function renderAll() {
+      saveSettings();
       document.body.classList.toggle('theme-light', state.theme === 'light');
       themeBtn.textContent = state.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
       renderWheel();
       renderBreakdown();
-      saveSettings();
     }
 
     clearBtn.addEventListener('click', () => { state.selection = null; renderAll(); });
