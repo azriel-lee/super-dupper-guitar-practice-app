@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Super Dupper Guitar App</title>
+  <title>Super Dupper Guitar App — Metronome and Scale Viewer</title>
   <style>
     :root {
       --bg: linear-gradient(180deg, #08090f 0%, #030409 100%);
@@ -427,22 +427,52 @@
       return map;
     }
 
+    const STORAGE_KEY = "superDupperGuitarAppSettings";
+    function loadSavedSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+    function saveSettings() {
+      try {
+        const payload = {
+          theme: state.theme,
+          bpm: state.bpm,
+          volume: state.volume,
+          timeSig: state.timeSig,
+          soundType: state.soundType,
+          strings: state.strings,
+          root: state.root,
+          scale: state.scale,
+          frets: state.frets,
+          tuningName: state.tuningName,
+          transpose: state.transpose,
+          leftHanded: state.leftHanded,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch {}
+    }
+
+    const savedSettings = loadSavedSettings();
     const state = {
-      theme: 'dark',
-      bpm: 120,
-      volume: 70,
+      theme: savedSettings.theme === 'light' ? 'light' : 'dark',
+      bpm: Number.isFinite(savedSettings.bpm) ? Math.max(40, Math.min(240, savedSettings.bpm)) : 120,
+      volume: Number.isFinite(savedSettings.volume) ? Math.max(0, Math.min(100, savedSettings.volume)) : 70,
       isRunning: false,
-      timeSig: '4/4',
+      timeSig: typeof savedSettings.timeSig === 'string' ? savedSettings.timeSig : '4/4',
       beat: 1,
-      soundType: 'tone',
+      soundType: savedSettings.soundType === 'metclick' ? 'metclick' : 'tone',
       tapTimes: [],
-      strings: 6,
-      root: 'E',
-      scale: 'Minor',
-      frets: 15,
-      tuningName: 'Standard (E)',
-      transpose: 0,
-      leftHanded: false,
+      strings: [6, 7, 8].includes(savedSettings.strings) ? savedSettings.strings : 6,
+      root: typeof savedSettings.root === 'string' ? savedSettings.root : 'E',
+      scale: typeof savedSettings.scale === 'string' ? savedSettings.scale : 'Minor',
+      frets: Number.isFinite(savedSettings.frets) ? Math.max(12, Math.min(24, savedSettings.frets)) : 15,
+      tuningName: typeof savedSettings.tuningName === 'string' ? savedSettings.tuningName : 'Standard (E)',
+      transpose: Number.isFinite(savedSettings.transpose) ? Math.max(-6, Math.min(6, savedSettings.transpose)) : 0,
+      leftHanded: Boolean(savedSettings.leftHanded),
     };
 
     const els = {
@@ -472,6 +502,18 @@
       fretboardOuter: document.getElementById('fretboardOuter'),
       fretboardTrack: document.getElementById('fretboardTrack'),
     };
+
+    function validateLoadedState() {
+      if (!COMMON_TIMES.includes(state.timeSig)) state.timeSig = '4/4';
+      if (!NOTES.includes(state.root)) state.root = 'E';
+      if (!Object.prototype.hasOwnProperty.call(SCALE_PATTERNS, state.scale === 'Minor' ? 'Natural Minor' : state.scale)) state.scale = 'Minor';
+      const tuningOptions = TUNINGS[state.strings] || TUNINGS[6];
+      if (!Object.prototype.hasOwnProperty.call(tuningOptions, state.tuningName)) {
+        state.tuningName = Object.keys(tuningOptions)[0];
+      }
+    }
+
+    validateLoadedState();
 
     COMMON_TIMES.forEach(sig => {
       const opt = document.createElement('option');
@@ -586,6 +628,7 @@
     }
 
     function renderFretboard() {
+      saveSettings();
       const tuningBase = TUNINGS[state.strings][state.tuningName];
       const tuning = transposeTuning(tuningBase, state.transpose);
       const displayTuning = tuning;
@@ -650,6 +693,7 @@
     }
 
     function renderAll() {
+      saveSettings();
       document.body.classList.toggle('theme-light', state.theme === 'light');
       els.themeToggle.textContent = state.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
       els.bpmSlider.value = state.bpm;
