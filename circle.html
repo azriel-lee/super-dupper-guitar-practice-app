@@ -80,15 +80,14 @@
     .wheelWrap { display: flex; justify-content: center; align-items: center; margin-top: 10px; }
     svg { width: 100%; height: auto; max-width: 720px; }
     .segMajor, .segMinor { cursor: pointer; transition: opacity 0.16s ease, filter 0.16s ease; }
-    .segMajor.idle { fill: rgba(18, 24, 35, 0.96); opacity: 0.92; }
-    .segMinor.idle { fill: rgba(12, 16, 25, 0.96); opacity: 0.9; }
+    .segMajor.idle, .segMinor.idle { fill: #313a49; opacity: 0.44; }
     .segMajor.root-major, .segMinor.root-minor { fill: url(#rootGlowFill); opacity: 1; filter: drop-shadow(0 0 14px rgba(255,0,122,0.26)); }
     .segMajor.in-key, .segMinor.in-key { fill: url(#scaleGlowFill); opacity: 0.98; filter: drop-shadow(0 0 10px rgba(53,230,255,0.12)); }
     body.theme-light .segMajor.idle { fill: rgba(183, 192, 206, 0.9); opacity: 0.95; }
     body.theme-light .segMinor.idle { fill: rgba(209, 218, 231, 0.96); opacity: 0.95; }
     body.theme-light .segMajor.root-major, body.theme-light .segMinor.root-minor { fill: url(#rootGlowFillLight); filter: drop-shadow(0 0 10px rgba(197,20,88,0.18)); }
     body.theme-light .segMajor.in-key, body.theme-light .segMinor.in-key { fill: url(#scaleGlowFillLight); filter: drop-shadow(0 0 8px rgba(53,230,255,0.08)); }
-    .segMajor.faded, .segMinor.faded { opacity: 0.22; }
+    .segMajor.faded, .segMinor.faded { fill: #313a49; opacity: 0.44; }
     body.theme-light .segMajor.faded, body.theme-light .segMinor.faded { opacity: 0.42; }
     .labelMajor, .labelMinor, .romanText { font-weight: 900; cursor: pointer; user-select: none; }
     .labelMajor, .labelMinor { fill: #f7fbff; letter-spacing: 0.02em; }
@@ -97,7 +96,7 @@
     body.theme-light .romanText { fill: #16324a; }
     .labelMajor { font-size: 17px; }
     .labelMinor { font-size: 15px; }
-    .labelFaded { opacity: 0.2; }
+    .labelFaded { fill: #b4c0d2; opacity: 0.44; }
     .labelInKey { opacity: 1; }
     .romanBadgeOnWheel { paint-order: stroke; stroke: rgba(0,0,0,0.5); stroke-width: 2px; stroke-linejoin: round; }
     body.theme-light .romanBadgeOnWheel { stroke: rgba(255,255,255,0.82); }
@@ -222,32 +221,28 @@
       innerLabelRadius: (123 + 218) / 2 + 2,
     };
 
-    const STORAGE_KEY = 'sdga-circle-settings';
-    function loadStoredState() {
+    const STORAGE_KEY = "superDupperGuitarAppSettings";
+    function loadSavedSettings() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (e) {
-        return null;
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
       }
     }
-    function saveStoredState() {
+    const savedSettings = loadSavedSettings();
+    function saveSettings() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        const payload = {
+          ...loadSavedSettings(),
           theme: state.theme,
-          selection: state.selection
-        }));
-      } catch (e) {}
+          circleSelection: state.selection,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch {}
     }
 
-    const storedState = loadStoredState();
-    const state = {
-      theme: storedState && (storedState.theme === 'light' || storedState.theme === 'dark') ? storedState.theme : 'dark',
-      selection: storedState && storedState.selection && (storedState.selection.type === 'major' || storedState.selection.type === 'minor') && typeof storedState.selection.note === 'string'
-        ? storedState.selection
-        : null
-    };
+    const state = { theme: savedSettings.theme === 'light' ? 'light' : 'dark', selection: savedSettings.circleSelection || null };
     const svg = document.getElementById('wheelSvg');
     const breakdownPanel = document.getElementById('breakdownPanel');
     const chordList = document.getElementById('chordList');
@@ -396,7 +391,6 @@
     function toggleSelection(next) {
       if (state.selection && state.selection.type === next.type && state.selection.note === next.note) state.selection = null;
       else state.selection = next;
-      saveStoredState();
       renderAll();
     }
 
@@ -533,15 +527,15 @@
     }
 
     function renderAll() {
+      saveSettings();
       document.body.classList.toggle('theme-light', state.theme === 'light');
       themeBtn.textContent = state.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-      saveStoredState();
       renderWheel();
       renderBreakdown();
     }
 
-    clearBtn.addEventListener('click', () => { state.selection = null; saveStoredState(); renderAll(); });
-    themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; saveStoredState(); renderAll(); });
+    clearBtn.addEventListener('click', () => { state.selection = null; renderAll(); });
+    themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; renderAll(); });
     renderAll();
   </script>
 </body>
